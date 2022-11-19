@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -23,5 +24,17 @@ public class FinancialService {
 
     public List<FinancialEntity> findAll() {
         return repository.findAll();
+    }
+
+    public void delete(FinancialEntity entity) {
+        repository.delete(entity);
+    }
+
+    public Optional<FinancialEntity> findById(String id) {
+        return repository.findById(id);
+    }
+
+    public List<FinancialEntity> findByUser(String user) {
+        return repository.findByUser(user);
     }
 }

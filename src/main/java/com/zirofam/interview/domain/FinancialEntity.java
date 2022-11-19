@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id", doNotUseGetters = true, callSuper = false)
 @Entity
-@Table(name = AppConstants.TABLE_PREFIX + "address")
+@Table(name = AppConstants.TABLE_PREFIX + "financial")
 public class FinancialEntity {
 
     @Id

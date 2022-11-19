@@ -24,7 +24,7 @@ public class FinancialController {
         this.service = service;
     }
 
-    @PostMapping("/v1/financial")
+    @PostMapping("/v1/create")
     public ResponseEntity<FinancialModel> create(@RequestBody FinancialDto dto) {
 
         if (dto.getId() != null) {
@@ -37,21 +37,71 @@ public class FinancialController {
         return new ResponseEntity<>(model, HttpStatus.CREATED);
     }
 
-    @GetMapping("/v1/financial")
-    public ResponseEntity<List<FinancialModel>> findAll() {
-        List<FinancialEntity> entities = service.findAll();
-        return new ResponseEntity<>(mapper.toModel(entities), HttpStatus.CREATED);
+    @PutMapping("/v1/update")
+    public ResponseEntity<FinancialModel> update(@RequestBody FinancialDto dto) {
+        if (dto.getId() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        FinancialEntity entity = mapper.toEntity(dto);
+        entity = service.save(entity);
+        FinancialModel model = mapper.toModel(entity);
+        return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    /*
-    * TODO: PART 1: add RESTful API
-    * create
-    * update
-    * partial update
-    * delete
-    * find by id
-    * find by user id
-    * */
+    @PutMapping("/v1/partialUpdate")
+    public ResponseEntity<FinancialModel> partialUpdate(@RequestBody FinancialDto dto) {
+        if (dto.getId() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        FinancialEntity entity = service.findById(dto.getId()).get();
+        if (dto.getUser() != null) {
+            entity.setUser(dto.getUser());
+        }
+        if (dto.getAmount() != null) {
+            entity.setAmount(dto.getAmount());
+        }
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
+        entity = service.save(entity);
+        FinancialModel model = mapper.toModel(entity);
+        return new ResponseEntity<>(model, HttpStatus.OK);
+    }
 
+    @DeleteMapping("/v1/delete")
+    public ResponseEntity delete(@RequestBody FinancialDto dto) {
+        if (dto.getId() == null) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+        if (!service.findById(dto.getId()).isPresent()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+        FinancialEntity entity = mapper.toEntity(dto);
+        service.delete(entity);
+        return new ResponseEntity(HttpStatus.OK);
+    }
 
+    @GetMapping("/v1/findById")
+    public ResponseEntity<FinancialModel> findById(String id) {
+        if (id == null) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+        FinancialEntity entity = service.findById(id).get();
+        return new ResponseEntity<>(mapper.toModel(entity), HttpStatus.OK);
+    }
+
+    @GetMapping("/v1/findByUser")
+    public ResponseEntity<List<FinancialModel>> findByUser(String user) {
+        if (user == null) {
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+        List<FinancialEntity> entities = service.findByUser(user);
+        return new ResponseEntity<>(mapper.toModel(entities), HttpStatus.OK);
+    }
+
+    @GetMapping("/v1/findAll")
+    public ResponseEntity<List<FinancialModel>> findAll() {
+        List<FinancialEntity> entities = service.findAll();
+        return new ResponseEntity<>(mapper.toModel(entities), HttpStatus.OK);
+    }
 }
