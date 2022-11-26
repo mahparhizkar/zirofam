@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -98,23 +99,22 @@ public class WalletService {
 
             //Check user has a record in processing
             if(userMap == null || userMap.size() == 0) {
-
                 //Add user to redis for lock
                 cacheInRedis(user);
-
-                if (status.equals(AccountingStatus.CREDITOR.name())) {
-                    //Execute wallet updating
-                    walletRepository.incrementWallet(user, amount);
-                }
-                if (status.equals(AccountingStatus.DEBTOR.name())) {
-                    //Execute wallet updating
-                    walletRepository.decrementWallet(user, amount);
-                }
-
-                //Remove user from redis after execution
-                String redisKey = RedisConstants.REDIS_KEY_PREFIX + user;
-                redisTemplate.opsForHash().delete(redisKey);
             }
+
+            if (status.equals(AccountingStatus.CREDITOR.name())) {
+                //Execute wallet updating
+                walletRepository.incrementWallet(user, amount);
+            }
+            if (status.equals(AccountingStatus.DEBTOR.name())) {
+                //Execute wallet updating
+                walletRepository.decrementWallet(user, amount);
+            }
+
+            //Remove user from redis after execution
+            String redisKey = RedisConstants.REDIS_KEY_PREFIX + user;
+            redisTemplate.delete(redisKey);
         }
     }
 
@@ -143,8 +143,9 @@ public class WalletService {
 
     public void cacheInRedis(String user){
         String redisKey = RedisConstants.REDIS_KEY_PREFIX + user;
-        Map userMap = objectMapper.convertValue(user, Map.class);
-        redisTemplate.opsForHash().putAll(redisKey, userMap);
+        Map<String, String> map = new HashMap<>();
+        map.put(redisKey, user);
+        redisTemplate.opsForHash().putAll(redisKey, map);
         redisTemplate.expire(redisKey, Duration.ofHours(redisKeyExpiryInHours));
     }
 }
